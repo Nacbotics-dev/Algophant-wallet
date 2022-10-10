@@ -1,0 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
+*{
+    padding: 0;
+    margin: 0;
+    font-family: 'Poppins';
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+body{
+    background-color: white;
+}
+
+
+.custom-box-shadow{
+    box-shadow: 0.5px 0.7px 2.2px rgb(0 0 0 / 2%), 1.1px 1.6px 4.9px rgb(0 0 0 / 3%), 1.8px 2.8px 8.2px rgb(0 0 0 / 3%), 2.7px 4.2px 12.3px rgb(0 0 0 / 4%), 3.9px 6px 17.8px rgb(0 0 0 / 5%), 5.5px 8.5px 25.2px rgb(0 0 0 / 5%), 7.8px 12.1px 35.7px rgb(0 0 0 / 6%), 11.3px 17.5px 51.8px rgb(0 0 0 / 6%), 17.4px 27px 79.9px rgb(0 0 0 / 7%), 31px 48px 142px rgb(0 0 0 / 9%);
+    padding: 20px;
+
+}

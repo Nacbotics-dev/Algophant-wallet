@@ -1,0 +1,26 @@
+{
+  "name": "AlgoPhant Wallet",
+  "version" : "1.1.0",
+  "description": "An Algorand cryptocurrency wallet  which allows users to access their crypto on the web through the browser extension",
+  "manifest_version": 3,
+  "author": "Nacbotics",
+  "permissions":[
+      "storage",
+      "activeTab",
+      "contextMenus",
+      "scripting",
+      "tabs",
+      "tabGroups"
+  ],
+  "host_permissions":[ "<all_urls>" ],
+  "action":{
+      "default_title": "Algorand cryptocurrency wallet",
+      "default_popup":"index.html"
+  },
+  "externally_connectable": {
+  "ids": ["*"]
+  },
+  "icons": { "16": "/images/icon16.png",
+           "48": "/images/icon48.png",
+          "128": "/images/icon128.png" }
+}

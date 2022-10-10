@@ -18,6 +18,24 @@ to install the chrome extension file :
 7. once that's done you can now use the wallet by locating it in your extensions
 
 
+# Running locally :
+To run this project locally on you local machine
+
+### The frontend/extension
+
+1. cd into `.../Algophant-wallet/algophant-extension`
+2. run `npm install` to install the project dependencies
+3. navigate to `.../Algophant-wallet/algophant-extension/src/APIMethods/AxiosBase.js` and change the `BASE_URL` to match your localhost url
+4. run `npm start` to launch the local server (from the base directory `.../Algophant-wallet/algophant-extension`)
+
+### The back-end
+
+1. cd into `.../Algophant-wallet/algophant-backend/AlgoPhantAPI`
+2. run the `pip install -r requirements.txt` command to install dependencies
+3. run `python3 manage.py migrate` to migrate the django database.
+4. run `python3 manage.py runserver` to start up the local server.
+
+#### The back-end was developed with python3.10.4 older versions might not work properly and remeber to use on a virtual-environment to avoid module conflicts
 
 In the future I hope to implement more features as I grow with Algorand
 

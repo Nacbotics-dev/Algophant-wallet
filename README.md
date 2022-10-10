@@ -6,8 +6,10 @@ This is a code challenge for the Algorand greenhouse [hackathon](https://gitcoin
 I used the python algorand sdk for the challenge with the help of Djang as my backend and ReactJs as the frontend. The project aims to eliminate having to remember the url of the algorand wallet you are using. but instead be the goto wallet for all your algorand interactions.
 
 the django api documentation for the wallet can be found [here](https://documenter.getpostman.com/view/20357451/2s83zgvRGK).
+The video tutorial of the wallet can be found [here](https://www.youtube.com/watch?v=ZJOVufuhezQ).
+The text tutorial of the wallet can be found [here](https://medium.com/@xavierroymccoy_46596/algophant-wallet-tutorial-4054157c8fbe)
 
-to install the chrome extension file :
+To install the chrome extension file :
 
 1. clone this repository to you local machine
 2. go to the extensions tab on chrome 

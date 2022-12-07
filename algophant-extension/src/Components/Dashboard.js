@@ -61,12 +61,22 @@ function Dashboard({setViewSets}) {
                         <p className="text-[#7C24A8] text-base font-medium">Add Token</p>
                     </div>
 
+                    <div onClick={()=>{setViewSets('swap_token')}} className="flex flex-col items-center cursor-pointer bg-transparent border-2 border-[#20b750] rounded-2xl p-2">
+                        <div>
+                            <svg className="w-8 h-8" fill="none" stroke="#20b750" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                        </div>
+                        <p className="text-base font-medium text-[#20b750]">Swap Token</p>
+                    </div>
+
                     <div onClick={()=>{setViewSets('send_token')}} className="flex flex-col items-center cursor-pointer bg-[#7C24A8] rounded-2xl p-2">
                         <div>
                             <svg className="w-8 h-8" fill="#fff" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clipRule="evenodd" /></svg>
                         </div>
                         <p className="text-base font-medium text-white">Send Token</p>
                     </div>
+
+
+                    
                     
                 </div>
 
@@ -81,9 +91,12 @@ function Dashboard({setViewSets}) {
                         <div onClick={()=>{setActiveBar('transactions')}} className={`${activeBar === 'transactions'? 'text-[#7C24A8] border-b-4 border-b-[#7C24A8]' :'text-gray-500'} text-center w-full cursor-pointer`}>
                             <h3 className="text-lg font-medium">Transactions</h3>
                         </div>
+
                     </div>
 
-                    {returnView(activeBar)}
+                    <div className=' max-h-screen overflow-y-scroll'>
+                        {returnView(activeBar)}
+                    </div>
 
                 
                 </div>

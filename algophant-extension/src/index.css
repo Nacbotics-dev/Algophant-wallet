@@ -1,9 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
 
 *{
-    padding: 0;
-    margin: 0;
-    font-family: 'Poppins';
+  padding: 0px;
+  margin: 0px;
+  font-family: 'Poppins';
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 @tailwind base;
@@ -11,8 +19,53 @@
 @tailwind utilities;
 
 
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 0px;
+}
+
+.wrap-word{
+  word-break: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-height: 1.125;
+}
+
+
+
+
+.custom-scrollbar::-webkit-scrollbar-track {
+background: transparent;
+padding: 0px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+background-color: blue;    /* color of the scroll thumb */
+border-radius: 20px;       /* roundness of the scroll thumb */
+/* border: 3px solid orange;  creates padding around scroll thumb */
+-webkit-appearance: none;
+background-color: #7C24A8;
+}
+
+.invalid-input{
+  border-color: red;
+}
+
 body{
     background-color: white;
+}
+
+input[type="number"]::-webkit-outer-spin-button, 
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type="number"] {
+    -moz-appearance: textfield;
 }
 
 
@@ -20,4 +73,27 @@ body{
     box-shadow: 0.5px 0.7px 2.2px rgb(0 0 0 / 2%), 1.1px 1.6px 4.9px rgb(0 0 0 / 3%), 1.8px 2.8px 8.2px rgb(0 0 0 / 3%), 2.7px 4.2px 12.3px rgb(0 0 0 / 4%), 3.9px 6px 17.8px rgb(0 0 0 / 5%), 5.5px 8.5px 25.2px rgb(0 0 0 / 5%), 7.8px 12.1px 35.7px rgb(0 0 0 / 6%), 11.3px 17.5px 51.8px rgb(0 0 0 / 6%), 17.4px 27px 79.9px rgb(0 0 0 / 7%), 31px 48px 142px rgb(0 0 0 / 9%);
     padding: 20px;
 
+}
+
+.transition_0_5s {
+  transition: 0.5s;
+}
+
+.swap_to_top_from_bottom{
+  top: -280px;
+}
+
+.swap_to_bottom_from_top{
+  top: 280px;
+}
+
+@media screen and (max-width: 780px) {
+  .swap_to_top_from_bottom{
+    top: -123px;
+  }
+  
+  .swap_to_bottom_from_top{
+    top: 123px;
+  }
+  
 }

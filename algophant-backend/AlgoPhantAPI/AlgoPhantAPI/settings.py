@@ -19,6 +19,7 @@ from Algorand.Algorand import Algorand
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
@@ -26,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-k#qoyktehvz_f_ak!fs4mi*r_p)vd-)&gcsl4cx77)j9$f4mwe'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 CORS_ORIGIN_ALLOW_ALL = True
@@ -35,8 +36,7 @@ CORS_ORIGIN_ALLOW_ALL = True
 ## Algorand SDK settings
 
 ALGORAND_NETWORK = 'Mainnet'
-
-ALGO_TOKEN = ""
+ALGO_TOKEN = "GpA41yW9Sn5YwPPLtDiGQ2lliTD8KZxOaYWi7NyV"
 ALGORAND_WALLET = Algorand(ALGO_TOKEN,ALGORAND_NETWORK)
 # Application definition
 

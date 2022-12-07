@@ -23,7 +23,6 @@ function Transactions({wallet_address}) {
     useEffect(()=>{
 
         if (responseData.data) {
-            console.log(responseData.data,'#########')
             setTxnData(responseData.data)
         }
     },[responseData.data])
@@ -71,7 +70,7 @@ function Transactions({wallet_address}) {
                                                         </div>
 
                                                         <div className='text-left'>
-                                                            <h4 className="text-lg font-semibold">{txn?.status === "Received"? "Received":"Sent"} {txn?.token_name}</h4>
+                                                            <h4 className="text-lg font-semibold">{txn?.status} {txn?.token_name}</h4>
                                                             <div className="flex flex-col space-y-2 text-xs font-normal text-gray-600">
                                                                 <div className="flex flex-row space-x-1 mt-1 text-xs font-normal text-gray-600">
                                                                     <p className="w-28 overflow-hidden text-ellipsis whitespace-nowrap"><span className='font-medium text-black'>{txn?.status === "Received"? "From":"to"}:</span> {txn?.receiver}</p>

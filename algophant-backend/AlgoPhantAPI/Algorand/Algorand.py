@@ -1,8 +1,9 @@
 import base64,datetime
 from algosdk.v2client import algod,indexer
+from tinyman.v1.client import TinymanClient
+from algosdk import mnemonic,transaction,account,util
 from algosdk.error import WrongChecksumError,AlgodHTTPError
-from algosdk import mnemonic,transaction,account,encoding,util
-from algosdk.future.transaction import AssetConfigTxn,AssetTransferTxn
+from algosdk.future.transaction import AssetTransferTxn,wait_for_confirmation
 from .Config import ALGO_INDEX_TESTNET,ALGO_INDEX_MAINNET,ALGO_MAINNET,ALGO_TESTNET
 
 
@@ -11,18 +12,17 @@ class Algorand():
         My Personal wrapper for the algorand sdk
     """
 
-    def __init__(self,token,network) -> None:
+    def __init__(self,token,network:str) -> None:
         self.headers = {
         "X-API-Key": token,
         }
 
         self.token = token
-        self.network = network
+        self.network = network.lower()
 
-        if self.network == 'Mainnet':
+        if self.network == 'mainnet':
             self.indexURL = ALGO_INDEX_MAINNET
             self.sdkURL = ALGO_MAINNET
-        
         else:
             self.indexURL = ALGO_INDEX_TESTNET
             self.sdkURL = ALGO_TESTNET
@@ -30,12 +30,17 @@ class Algorand():
 
         self.indexer = indexer.IndexerClient(self.token,self.indexURL,self.headers)
         self.algorand_client = algod.AlgodClient(self.token,self.sdkURL,self.headers)
+
+        if self.network == "mainnet":
+            self.tinyman = TinymanClient(self.algorand_client,validator_app_id=552635992)
+        else:
+            self.tinyman = TinymanClient(self.algorand_client,validator_app_id=62368684)
     
 
-    def set_network(self,network):
+    def set_network(self,network:str):
         """This changes the users network preferance"""
-        self.network = network
-        if self.network == 'Mainnet':
+        self.network = network.lower()
+        if self.network == 'mainnet':
             self.indexURL = ALGO_INDEX_MAINNET
             self.sdkURL = ALGO_MAINNET
         
@@ -45,6 +50,11 @@ class Algorand():
         
         self.indexer = indexer.IndexerClient(self.token,self.indexURL,self.headers)
         self.algorand_client = algod.AlgodClient(self.token,self.sdkURL,self.headers)
+
+        if self.network == "mainnet":
+            self.tinyman = TinymanClient(self.algorand_client,validator_app_id=552635992)
+        else:
+            self.tinyman = TinymanClient(self.algorand_client,validator_app_id=62368684)
         return
 
     def create_wallet(self):
@@ -83,9 +93,9 @@ class Algorand():
 
         return(data)
 
-    def check_balance(self,address) -> int:
+    def check_balance(self,address) -> float:
         balance = self.algorand_client.account_info(address).get('amount')
-        balance  = util.microalgos_to_algos(balance)
+        balance  = float(util.microalgos_to_algos(balance))
         return(balance)
     
     def send_token(self,txn_info) -> dict:
@@ -108,7 +118,7 @@ class Algorand():
         try:
             signed_tx = tx.sign(holder_private_key)
         except WrongChecksumError:
-            return('Checksum failed')
+            return({'error':'Checksum failed'})
 
         try:
             tx_confirm = self.algorand_client.send_transaction(signed_tx)
@@ -141,7 +151,6 @@ class Algorand():
             return({'txn_id':txid})
         except AlgodHTTPError as e:
             return({"error":f"transaction failed :{str(e).split(':')[-1]}","code":e.code})
-
 
     def optin_token(self,txn_info):
         """
@@ -180,15 +189,16 @@ class Algorand():
                 "receiver": txn.get("payment-transaction", txn.get("asset-transfer-transaction",{})).get("receiver"),
                 "note": base64.b64decode(txn.get("note", "")).decode("utf-8",errors='ignore'),
                 }
-            
-            if address == txn.get("sender"):
+            if txn.get("tx-type") == "appl":
+                data["status"] = "Contract call"
+            elif address == txn.get("sender"):
                 data["status"] = "Sent"
             else:
                 data["status"] = "Received"
 
 
             token = txn.get("asset-transfer-transaction",{}).get("asset-id","Algo")
-            amount = int(txn.get("payment-transaction",txn.get("asset-transfer-transaction",{})).get("amount"))
+            amount = int(txn.get("payment-transaction",txn.get("asset-transfer-transaction",{})).get("amount",0))
 
             try:
                 token = int(token)
@@ -205,7 +215,6 @@ class Algorand():
 
         return(transaction_list)
     
-
     def balance_formatter(self,amount, asset_id):
         """
         Returns the formatted units for a given asset and amount. 
@@ -216,7 +225,7 @@ class Algorand():
         decimals = asset_info['params'].get("decimals")
         data['asset_name'] = asset_info['params'].get("name")
         data['symbol'] = asset_info['params'].get("unit-name")
-        data['formatted_amount'] = amount/10**decimals
+        data['formatted_amount'] = round(amount/10**decimals,2)
 
         data['asset_id'] = asset_info.get("index")
         
@@ -231,8 +240,19 @@ class Algorand():
         result['Assets'] = []
 
         account_info = self.algorand_client.account_info(address)
-        result['algorand_balance'] = util.microalgos_to_algos(account_info.get('amount'))
+        result['algorand_balance'] = round(util.microalgos_to_algos(account_info.get('amount')),2)
         assets = account_info.get("assets")
+
+        algorandData = {
+            "asset_id":0,
+            "symbol":"ALGO",
+            "asset_name":"Algorand",
+            "formatted_amount":result['algorand_balance']
+        }
+
+        result['Assets'].append(algorandData)
+
+
         
         for asset in assets:
             amount = asset.get("amount")
@@ -254,3 +274,107 @@ class Algorand():
                 return(self.balance_formatter(amount,asset_id))
         
         return
+    
+    def __optin_tinyman(self,address:str,private_key:str):
+        """This opts a user address into the tinyman AMM contract"""
+
+        if not self.tinyman.is_opted_in(address):
+            transaction_group = self.tinyman.prepare_app_optin_transactions(address)
+            for i, txn in enumerate(transaction_group.transactions):
+                if txn.sender == address:
+                    transaction_group.signed_transactions[i] = txn.sign(private_key)
+            txid = self.tinyman.algod.send_transactions(transaction_group.signed_transactions)
+            wait_for_confirmation(self.algorand_client, txid)
+
+    def fetch_asset_info(self,asset_id:int)->dict:
+        """ This checks if an asset exists and returns the asset details"""
+
+        try:
+            asset = self.tinyman.fetch_asset(asset_id)
+            return({"asset_id":asset.id,"symbol":asset.unit_name,"asset_name":asset.name,"formatted_amount":0.0})
+        except AlgodHTTPError as e:
+            return({"error":f"transaction failed :{str(e).split(':')[-1]}","code":e.code})
+    
+    def verify_pool(self,from_asset:int,to_asset:int,address:str)->dict:
+        """This checks if there is a liquidity pool for both assets"""
+
+        try:
+            fromAsset = self.tinyman.fetch_asset(from_asset)
+            toAsset = self.tinyman.fetch_asset(to_asset)
+        except AlgodHTTPError as e:
+            return({"error":f"transaction failed :{str(e).split(':')[-1]}","code":e.code})
+        pool = self.tinyman.fetch_pool(toAsset,fromAsset)
+
+        self.tinyman.user_address = address
+
+        if pool.exists:
+            quote = pool.fetch_fixed_input_swap_quote(fromAsset(1*10**fromAsset.decimals), slippage=0.01)
+            return({"pool_exist":pool.exists,"price":quote.price})
+        
+
+        return({"pool_exist":False})
+    
+    def swap_token(self,address:str,private_key:str,amount_in:float,from_asset:int,to_asset:int)->dict:
+        """ This swaps a token from one to another"""
+        self.__optin_tinyman(address,private_key)
+
+        try:
+            fromAsset = self.tinyman.fetch_asset(from_asset)
+            toAsset = self.tinyman.fetch_asset(to_asset)
+        except AlgodHTTPError as e:
+            return({"error":f"transaction failed :{str(e).split(':')[-1]}","code":e.code})
+        
+
+        self.tinyman.user_address = address
+        pool = self.tinyman.fetch_pool(toAsset,fromAsset)
+        asset_opted_in = self.tinyman.asset_is_opted_in(toAsset)
+
+        if not asset_opted_in and toAsset.id != 0:
+            txn_info = {"asset_id":to_asset,"address":address,"private_key":private_key}
+            optinAsset = self.optin_token(txn_info)
+            if optinAsset.get("error"):
+                return(optinAsset)
+            
+        if pool.exists:
+            quote = pool.fetch_fixed_input_swap_quote(fromAsset(amount_in*10**fromAsset.decimals), slippage=0.01)
+
+            # Prepare a transaction group
+            transaction_group = pool.prepare_swap_transactions(
+                amount_in=quote.amount_in,
+                amount_out=quote.amount_out_with_slippage,
+                swap_type='fixed-input',
+                swapper_address=address,
+            )
+
+            try:
+                # Sign the group with our key
+                for i, txn in enumerate(transaction_group.transactions):
+                    if txn.sender == address:
+                        transaction_group.signed_transactions[i] = txn.sign(private_key)
+                swap_txid = self.algorand_client.send_transactions(transaction_group.signed_transactions)
+                wait_for_confirmation(self.algorand_client, swap_txid)
+                
+            except AlgodHTTPError as e:
+                return({"error":f"transaction failed :{str(e).split(':')[-1]}","code":e.code})
+
+            # Check if any excess remaining after the swap
+            excess = pool.fetch_excess_amounts(address)
+            if toAsset.id in excess:
+                amount = excess[toAsset.id]
+                # We might just let the excess accumulate rather than redeeming if its < 1 TinyUSDC
+                if amount > 1_000_000:
+                    transaction_group = pool.prepare_redeem_transactions(amount, address)
+                    # Sign the group with our key
+                    for i, txn in enumerate(transaction_group.transactions):
+                        if txn.sender == address:
+                            transaction_group.signed_transactions[i] = txn.sign(private_key)
+                    excess_txid = self.algorand_client.send_transactions(transaction_group.signed_transactions)
+                    wait_for_confirmation(self.algorand_client, excess_txid)
+
+            return({'txn_id':swap_txid})
+        
+        return({"error":"Transaction failed"})
+
+
+
+    

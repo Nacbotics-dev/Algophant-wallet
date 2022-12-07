@@ -2,6 +2,7 @@ import React,{useState,useEffect,useContext} from 'react';
 import AddToken from './AddToken';
 import SendToken from './SendToken';
 import Dashboard from './Dashboard';
+import SwapToken from './SwapToken';
 import WheelLoader from './LoadingBar/WheelLoader';
 import { AuthContext } from './ContextAPI/LoginContext';
 import { save_to_local_storage,get_data_from_local_storage } from '../ExtensionFiles/DBManagement';
@@ -10,16 +11,19 @@ function MainDashboard(props) {
     // const [myAssets,setMyAssets] = useState({});
     const [network,setNetwork] = useState("Testnet");
     const [viewSets,setViewSets] = useState('dashboard');
-    const {authState,setAuthState} = useContext(AuthContext);
+    const {setAuthState} = useContext(AuthContext);
     const [responseData,setResponseData] = useState({loading:false,data:null,error:false});
     
     const handleViewSets = (view) =>{
-        if (view === 'send_token') {
-        return(<SendToken setViewSets={setViewSets}/>)
-        } else if (view === 'add_token') {
-        return(<AddToken setViewSets={setViewSets}/>)
-        } else {
-        return(<Dashboard setViewSets={setViewSets}/>)
+        switch (view) {
+            case 'send_token':
+                return(<SendToken setViewSets={setViewSets}/>);
+            case 'add_token':
+                return(<AddToken setViewSets={setViewSets}/>);
+            case 'swap_token':
+                return(<SwapToken setViewSets={setViewSets}/>);
+            default:
+                return(<Dashboard setViewSets={setViewSets}/>);
         }
     }
 
@@ -33,16 +37,17 @@ function MainDashboard(props) {
     useEffect(()=>{
         const network = get_data_from_local_storage('network')?get_data_from_local_storage('network'):"Mainnet"
         setNetwork(network)
+        return
     }, [])
 
 
 
     useEffect(()=>{
         save_to_local_storage("network",network)
-        setAuthState({...authState,network:network})
+        setAuthState(authState=>({...authState,network:network}))
         setResponseData({loading:false,data:null,error:false})
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    },[network])
+
+    },[network,setAuthState])
 
    
     return (

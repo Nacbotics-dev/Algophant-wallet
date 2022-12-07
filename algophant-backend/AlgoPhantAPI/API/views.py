@@ -53,12 +53,12 @@ class SendToken(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self,request,*args,**kwargs):
-        asset_id = request.data.get('asset_id',None)
+        asset_id = request.data.get('asset_id',0)
         network = request.data.get("network","Mainnet")
         request.data.pop("network")
         settings.ALGORAND_WALLET.set_network(network)
 
-        if asset_id == None or asset_id == "":
+        if asset_id == None or asset_id == "" or asset_id == 0:
             result = settings.ALGORAND_WALLET.send_token(request.data)
         else:
             result = settings.ALGORAND_WALLET.transfer_asset(request.data)
@@ -110,7 +110,65 @@ class Assets(APIView):
         result = settings.ALGORAND_WALLET.address_holdings(address)
         return(Response(result,status=status.HTTP_201_CREATED))
 
+class AssetInfo(APIView):
+    """
+        This returns all the tokens in a users wallet with there respective balance
+    """
 
+    permission_classes = [permissions.AllowAny]
+
+    def get(self,request,asset_id,*args,**kwargs):
+        network = request.query_params.get('network','Mainnet')
+        settings.ALGORAND_WALLET.set_network(network)
+
+        result = settings.ALGORAND_WALLET.fetch_asset_info(int(asset_id))
+        return(Response(result,status=status.HTTP_201_CREATED))
+
+class VerifyPool(APIView):
+    """
+        This checks if there is liquidity for the tokens you want to swap
+    """
+
+    permission_classes = [permissions.AllowAny]
+
+    def post(self,request,*args,**kwargs):
+        network = request.data.get('network','Mainnet')
+        settings.ALGORAND_WALLET.set_network(network)
+        
+
+        try:
+            from_asset = int(request.data.get('from_asset'))
+            to_asset = int(request.data.get('to_asset'))
+        except:
+            return(Response({"error":"invalid asset id"},status=status.HTTP_406_NOT_ACCEPTABLE))
+        
+        address = request.data.get("address")
+        if address:
+            result = settings.ALGORAND_WALLET.verify_pool(from_asset,to_asset,address)
+            return(Response(result,status=status.HTTP_201_CREATED))
+        
+        return(Response({"error":"address cannot be empty"},status=status.HTTP_406_NOT_ACCEPTABLE))
+    
+class SwapToken(APIView):
+    """
+        This swaps one asset to another provided it has a liquidity pool
+    """
+
+    def post(self,request,*args,**kwargs):
+        network = request.data.get('network','Mainnet')
+        settings.ALGORAND_WALLET.set_network(network)
+
+        try:
+            address = str(request.data.get("address"))
+            private_key = str(request.data.get("private_key"))
+            amount_in = float(request.data.get("amount_in"))
+            from_asset = int(request.data.get("from_asset"))
+            to_asset = int(request.data.get("to_asset"))
+            result = settings.ALGORAND_WALLET.swap_token(address,private_key,amount_in,from_asset,to_asset)
+        except ValueError as e:
+            return(Response(request.data,status=status.HTTP_400_BAD_REQUEST))
+
+        return(Response(result,status=status.HTTP_200_OK))
 
 # {
 #     "address": "LXIGZHPRNWZLZSX5SGESUH3ZSJMVJMDO2GMYR2IL66JFLF3OMRCJJMR2FU",

@@ -36,7 +36,7 @@ CORS_ORIGIN_ALLOW_ALL = True
 ## Algorand SDK settings
 
 ALGORAND_NETWORK = 'Mainnet'
-ALGO_TOKEN = "GpA41yW9Sn5YwPPLtDiGQ2lliTD8KZxOaYWi7NyV"
+ALGO_TOKEN = "" # GeT algod token from purestake
 ALGORAND_WALLET = Algorand(ALGO_TOKEN,ALGORAND_NETWORK)
 # Application definition
 
